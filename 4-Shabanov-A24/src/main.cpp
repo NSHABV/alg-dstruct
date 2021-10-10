@@ -301,7 +301,7 @@ TEST(FileRead, HandlesInputOfUnformattedFile) {
 
 TEST(FileRead, HandlesInputOfEmptyFile) {
     LIST *head;
-    char a[20] = "emptyfiletest.txt";
+    char a[20] = "emptyfiletest.txt"; // unfortunately I cannot add this file to my repository (because it's empty)
     head = HeadElementCreation();
     EXPECT_EQ(FileRead(head, a), 1); // while loop doesnt begin, 1 is returned
     free(head);
