@@ -1,8 +1,8 @@
 //
-//  main.c
+//  test.cpp
 //  SPBPU-24-ALG-COURSE2
 //
-//  Created by Никита Шабанов on 07.09.2021.
+//  Created by Никита Шабанов on 11.10.2021.
 //
 
 #include <stdio.h>
