@@ -55,6 +55,7 @@ TEST(FileRead, HandlesInputOfUnformattedFile)
     free(head);
 }
 
+/* Unfortunately, completely empty files are unable to be added to Github. */
 TEST(FileRead, HandlesInputOfEmptyFile)
 {
     LIST *head;
@@ -64,13 +65,11 @@ TEST(FileRead, HandlesInputOfEmptyFile)
     free(head);
 }
 
-
 TEST(NodeAddition, HandlesEmptyHead)
 {
     ListNode newdata = NodeInit("Date", "Surname", "Name", -1);
     EXPECT_EQ(NodeAddition(NULL, newdata), 0);
 }
-
 
 TEST(NodeAddition, HandlesEmptyData) {
     LIST *head;
