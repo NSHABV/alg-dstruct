@@ -37,8 +37,8 @@ int ListErasure(struct LIST *headelement, int elementcount)
 ListNode NodeInit(char *date, char *surname, char *name, int workhours)
 {
     ListNode newnode;
-    strncpy(newnode.Name, name, 11);
-    strncpy(newnode.Surname, surname, 11);
+    strncpy(newnode.Name, name, 18);
+    strncpy(newnode.Surname, surname, 49);
     strncpy(newnode.Date, date, 11);
     newnode.Workhours = workhours;
     
