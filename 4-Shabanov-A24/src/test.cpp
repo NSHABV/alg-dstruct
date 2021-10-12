@@ -1,8 +1,8 @@
 //
-//  test.cpp
+//  main.c
 //  SPBPU-24-ALG-COURSE2
 //
-//  Created by Никита Шабанов on 11.10.2021.
+//  Created by Никита Шабанов on 07.09.2021.
 //
 
 #include <stdio.h>
@@ -36,6 +36,38 @@ TEST(FileRead, HandlesInputOfEmptyFileName)
     free(head);
 }
 
+TEST(FileRead, ReverseSortedTest)
+{
+    LIST *head, *temphead, *tempnext;
+    char a[30] = "reversesortedtest.txt";
+    
+    head = HeadElementCreation();
+    EXPECT_EQ(FileRead(head, a), 1);
+    temphead = head;
+    while (temphead != NULL)
+    {
+        tempnext = temphead->Next;
+        free(temphead);
+        temphead = tempnext;
+    }
+}
+
+TEST(FileRead, SortedTest)
+{
+    LIST *head, *temphead, *tempnext;
+    char a[20] = "sortedtest.txt";
+    
+    head = HeadElementCreation();
+    EXPECT_EQ(FileRead(head, a), 1);
+    temphead = head;
+    while (temphead != NULL)
+    {
+        tempnext = temphead->Next;
+        free(temphead);
+        temphead = tempnext;
+    }
+}
+
 TEST(FileRead, HandlesInputOfNonexistentFilename)
 {
     LIST *head;
@@ -55,7 +87,6 @@ TEST(FileRead, HandlesInputOfUnformattedFile)
     free(head);
 }
 
-/* Unfortunately, completely empty files are unable to be added to Github. */
 TEST(FileRead, HandlesInputOfEmptyFile)
 {
     LIST *head;
