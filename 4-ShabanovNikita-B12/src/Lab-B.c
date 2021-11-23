@@ -342,7 +342,12 @@ void memdone( void )
         {
             memfree((void*)ptr);
         }
-        ptr = (MemoryBloc*)((char*)ptr + tempsize);
+        
+        ptrsize = ptr->allocatedsize;
+        if (tempsize >= ptrsize)
+            ptr = (MemoryBloc*)((char*)ptr + tempsize);
+        else
+            ptr = (MemoryBloc*)((char*)ptr + ptrsize);
     }
     
     tempsize = *((char*)beginning + beginning->allocatedsize - sizeof(int));
