@@ -202,6 +202,9 @@ void memfree(void *p)
     else
         address = (MemoryBloc*)p;
     
+    if (address->allocatedsize < 0)
+        return;
+    
     if (address < SystemAllocated.HeadBloc || address >= (MemoryBloc*)((char*)SystemAllocated.HeadBloc + SystemAllocated.systemsize))
         return;
     else if (address == SystemAllocated.HeadBloc)
@@ -315,6 +318,7 @@ int main(int argc, const char * argv[]) {
     meminit(ptr, memsize);
     p1 = memalloc(1); // Success!
     p2 = memalloc(1); // Success!
+    memfree(p1);
     memfree(p2);
     memfree(p1);
     memdone();
