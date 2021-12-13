@@ -45,11 +45,15 @@ int meminit(void *pMemory, int size)
         SystemAllocated.HeadBloc = SystemAllocated.LastBloc;
         SystemAllocated.systemsize = size;
         
-        SystemAllocated.LastBloc->allocatedsize = -1 * size;
+        SystemAllocated.LastBloc->allocatedsize = -1 * (size - memgetblocksize());
         SystemAllocated.LastBloc->Next = NULL;
         
         return 1;
     }
+    
+    SystemAllocated.LastBloc = NULL;
+    SystemAllocated.HeadBloc = SystemAllocated.LastBloc;
+    SystemAllocated.systemsize = 0;
     
     return 0;
 }
@@ -58,13 +62,11 @@ void* memalloc(int size)
 {
     MemoryBloc *oldBlock;
     MemoryBloc *newBlock;
-    MemoryBloc *tempptr;
+    MemoryBloc *tempptr, *checkptr;
     int tempsize, truesize, flag = 0;
     
-    size += memgetblocksize();
-    
-    if (SystemAllocated.HeadBloc == NULL || size < memgetblocksize())
-        return (void*) NULL;
+    if (SystemAllocated.HeadBloc == NULL || size <= 0)
+        return NULL;
     
     if (SystemAllocated.LastBloc == NULL && SystemAllocated.HeadBloc != NULL)
         SystemAllocated.LastBloc = SystemAllocated.HeadBloc;
@@ -80,43 +82,46 @@ void* memalloc(int size)
         truesize = abs(tempsize);
         tempptr = oldBlock->Next;
         newBlock = (MemoryBloc*)((char*)oldBlock);
+        checkptr = (MemoryBloc*)((char*)oldBlock + size + memgetblocksize());
         
-        if (size > truesize || tempsize > 0)
+        if (size > truesize || tempsize >= 0)
             oldBlock = oldBlock->Next;
-        else if (size > truesize - memgetblocksize())
+        else if (size + memgetblocksize() > truesize && size <= truesize)
         {
-            memset(oldBlock, 0, truesize);
+            memset(oldBlock, 0, truesize + memgetblocksize());
             
             newBlock->allocatedsize = truesize;
             newBlock->Next = tempptr;
             
             SystemAllocated.LastBloc = newBlock;
             
-            return (void*) newBlock;
+            return (void*)((char*)newBlock + memgetblocksize());
         }
-        else
+        else if (checkptr <= (MemoryBloc*)((char*)SystemAllocated.HeadBloc + SystemAllocated.systemsize - memgetblocksize()))
         {
-            memset(newBlock, 0, size);
+            memset(newBlock, 0, size + memgetblocksize());
             
-            oldBlock = (MemoryBloc*)((char*)oldBlock + size);
-            oldBlock->allocatedsize = -1 * (truesize - size);
+            oldBlock = (MemoryBloc*)((char*)oldBlock + size + memgetblocksize());
+            oldBlock->allocatedsize = -1 * (truesize - size - memgetblocksize());
             oldBlock->Next = tempptr;
             
             newBlock->Next = oldBlock;
             newBlock->allocatedsize = size;
             
             SystemAllocated.LastBloc = newBlock;
-            return (void*) newBlock;
+            return (void*)((char*)newBlock + memgetblocksize());
         }
+        else
+            oldBlock = NULL;
     }
     
     if (flag == 0)
     {
         SystemAllocated.LastBloc = SystemAllocated.HeadBloc;
-        return memalloc(size - memgetblocksize());
+        return memalloc(size);
     }
     
-    return (void*) NULL;
+    return NULL;
 }
 
 void memfree(void *p)
@@ -130,7 +135,7 @@ void memfree(void *p)
     if (p == NULL)
         return;
     else
-        address = (MemoryBloc*)p;
+        address = (MemoryBloc*)((char*)p - memgetblocksize());
     
     if (address < SystemAllocated.HeadBloc || address >= (MemoryBloc*)((char*)SystemAllocated.HeadBloc + SystemAllocated.systemsize))
         return;
@@ -143,9 +148,9 @@ void memfree(void *p)
     tempptr = address->Next;
     tempptr2 = SystemAllocated.HeadBloc;
     
-    memset(address, 0, truesize);
+    memset(address, 0, truesize + memgetblocksize());
     address->Next = tempptr;
-    address->allocatedsize = (-1) * truesize;
+    address->allocatedsize = (-1) * (truesize);
     
     if (address != SystemAllocated.HeadBloc)
     {
@@ -160,12 +165,12 @@ void memfree(void *p)
         tempsize2 = tempptr2->allocatedsize;
         truesize2 = abs(tempsize2);
         
-        if (tempsize2 < 0)
+        if (tempsize2 <= 0)
         {
             oldBlock = address->Next;
             
-            memset(address, 0, truesize);
-            tempptr2->allocatedsize += (-1) * truesize;
+            memset(address, 0, truesize + memgetblocksize());
+            tempptr2->allocatedsize += (-1) * truesize - memgetblocksize();
             tempptr2->Next = oldBlock;
             
             address = tempptr2;
@@ -178,14 +183,14 @@ void memfree(void *p)
         tempsize = tempptr->allocatedsize;
         truesize = abs(tempsize);
         
-        if (tempsize < 0)
+        if (tempsize <= 0)
         {
             tempptr2 = tempptr->Next;
             
             address->Next = tempptr2;
-            address->allocatedsize += tempsize;
+            address->allocatedsize += tempsize - memgetblocksize();
             
-            memset(tempptr, 0, truesize);
+            memset(tempptr, 0, truesize + memgetblocksize());
         }
     }
 }
@@ -195,70 +200,42 @@ void memdone( void )
     MemoryBloc *ptr, *end, *beginning;
     int ptrsize, tempsize, flag = 0;
     
-    if (SystemAllocated.HeadBloc == NULL)
-        return;
-    
     ptr = SystemAllocated.HeadBloc;
     beginning = SystemAllocated.HeadBloc;
     end = (MemoryBloc*)((char*)SystemAllocated.HeadBloc + SystemAllocated.systemsize);
     
-    while (ptr != NULL)
-    {
-        flag = 0;
-        ptrsize = ptr->allocatedsize;
-        
-        if (ptrsize > 0)
-        {
-            memfree((void*)ptr);
-            flag = 1;
-        }
-        
-        if (flag == 1)
-        {
-            ptr = SystemAllocated.HeadBloc;
-        }
-        else
-            ptr = ptr->Next;
-    }
+    if (SystemAllocated.HeadBloc)
+        return;
     
     tempsize = beginning->allocatedsize;
     
-    if (tempsize == -1 * SystemAllocated.systemsize)
+    if (tempsize == -1 * SystemAllocated.systemsize + memgetblocksize())
         memset(beginning, 0, beginning->allocatedsize);
     
     SystemAllocated.HeadBloc = NULL;
 }
 
-/*
 int main(int argc, const char * argv[]) {
     void *p1 = 0, *p2 = 0, *p3 = 0, *p4 = 0, *p5 = 0, *p6 = 0, *ptr;
-    int memsize = 150;
+    int memsize = 250;
     ptr = malloc(memsize);
-    meminit(ptr, 324);
+    meminit(ptr, memsize);
     
-    p1 = memalloc(21);
-    p2 = memalloc(-61);
-    p3 = memalloc(8);
-    p4 = memalloc(7);
-    p5 = memalloc(11);
-    p6 = memalloc(5);
+    p1 = memalloc(1);
+    p2 = memalloc(3);
+    p3 = memalloc(6);
+    p4 = memalloc(4);
+    p5 = memalloc(6);
+    p6 = memalloc(9);
     
     memfree(p1);
     memfree(p2);
-    memfree((void*)5);
+    memfree(p3);
     memfree(p4);
     memfree(p5);
-    memfree(NULL);
-    
-    p1 = memalloc(1);
-    p2 = memalloc(0);
-    p3 = memalloc(8);
-    p4 = memalloc(7);
-    p5 = memalloc(11);
-    p6 = memalloc(5);
+    memfree(p6);
     
     memdone();
     free(ptr);
     return 0;
 }
- */
