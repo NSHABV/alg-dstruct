@@ -52,7 +52,7 @@ int meminit(void *pMemory, int size)
     }
     
     SystemAllocated.LastBloc = NULL;
-    SystemAllocated.HeadBloc = SystemAllocated.LastBloc;
+    SystemAllocated.HeadBloc = NULL;
     SystemAllocated.systemsize = 0;
     
     return 0;
@@ -195,26 +195,26 @@ void memfree(void *p)
     }
 }
 
-void memdone( void )
+void memdone(void)
 {
-    MemoryBloc *ptr, *end, *beginning;
-    int ptrsize, tempsize, flag = 0;
+    MemoryBloc *end, *beginning;
+    int tempsize, flag = 0;
     
-    ptr = SystemAllocated.HeadBloc;
     beginning = SystemAllocated.HeadBloc;
     end = (MemoryBloc*)((char*)SystemAllocated.HeadBloc + SystemAllocated.systemsize);
     
-    if (SystemAllocated.HeadBloc)
+    if (beginning == NULL)
         return;
     
     tempsize = beginning->allocatedsize;
     
     if (tempsize == -1 * SystemAllocated.systemsize + memgetblocksize())
-        memset(beginning, 0, beginning->allocatedsize);
+        memset(beginning, 0, abs(beginning->allocatedsize));
     
     SystemAllocated.HeadBloc = NULL;
 }
 
+/*
 int main(int argc, const char * argv[]) {
     void *p1 = 0, *p2 = 0, *p3 = 0, *p4 = 0, *p5 = 0, *p6 = 0, *ptr;
     int memsize = 250;
@@ -239,3 +239,4 @@ int main(int argc, const char * argv[]) {
     free(ptr);
     return 0;
 }
+*/
