@@ -157,7 +157,7 @@ void TreeInput(void)
     }
 }
 
-void TreeInputForTest(void)
+void TreeInputForTest(char *fileaddress)
 {
     int i, a, NodeNumber, NodeSign, AdjCount;
     char str[1024], str2[1024], *input, resetptr[2] = "aa";
@@ -166,10 +166,11 @@ void TreeInputForTest(void)
     if (TreeSystem.NodeArray == NULL)
         return;
     
-    F = fopen("stresstest.txt", "r");
+    F = fopen(fileaddress, "r");
     if (F == NULL)
         return;
     
+    fgets(str, 1024, F);
     NodeNumber = TreeSystem.NodeCount;
     
     for (i = 0; i < NodeNumber; i++)
@@ -261,7 +262,7 @@ void TreeBFS(void)
     }
 }
 
-void StressTest(void)
+void StressTestRand(void)
 {
     int i, a;
     FILE *F;
@@ -278,6 +279,35 @@ void StressTest(void)
     }
     
     fclose(F);
+}
+
+void TreeTestInit(char *addr)
+{
+    int i, NodeNum;
+    char num[64];
+    FILE *F;
+    
+    F = fopen(addr, "r");
+    if (F == NULL)
+        return;
+    
+    fgets(num, 64, F);
+    NodeNum = atoi(num);
+    
+    if (NodeNum == 0)
+    {
+        TreeSystem.NodeArray = NULL;
+        return;
+    }
+    
+    TreeSystem.NodeArray = (TreeNode**)malloc(NodeNum * sizeof(TreeNode*));
+    TreeSystem.NodeArray[0] = InitNode(0);
+    TreeSystem.NodeCount = NodeNum;
+    
+    for (i = 1; i < NodeNum; i++)
+    {
+        TreeSystem.NodeArray[i] = InitNode(i);
+    }
 }
 
 int main(int argc, const char * argv[]) {
@@ -297,9 +327,9 @@ int main(int argc, const char * argv[]) {
     TreeBFS();
     TreeFree();
      */
-    
-    StressTest();
-    TreeInputForTest();
+    /*
+    StressTestRand();
+    TreeInputForTest("stresstest.txt");
     for (i = 0; i < 5000; i++)
     {
         if (TreeSystem.NodeArray[i]->AdjCount > 0)
@@ -310,5 +340,15 @@ int main(int argc, const char * argv[]) {
     current_utc_time(&ts);
     timeend = ts.tv_sec;
     printf("\n %lu seconds spent on completion\n", timeend - timestart);
+     */
+    
+    TreeTestInit("test3.txt");
+    TreeInputForTest("test3.txt");
+    TreeBFS();
+    TreeFree();
+    current_utc_time(&ts);
+    timeend = ts.tv_sec;
+    printf("\n %lu seconds spent on completion\n", timeend - timestart);
+    
     return 0;
 }
