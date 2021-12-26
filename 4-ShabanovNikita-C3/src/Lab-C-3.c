@@ -79,6 +79,11 @@ TreeNode* InitNode(int NodeSign)
     ptr->VisitedFlag = 0;
     ptr->AdjCount = 0;
     ptr->AdjacentNodes = malloc(0);
+    if (ptr->AdjacentNodes == NULL)
+    {
+        free(ptr);
+        return NULL;
+    }
     ptr->Next = NULL;
     
     return ptr;
@@ -94,7 +99,18 @@ void TreeInit(int NodeNum)
     }
     
     TreeSystem.NodeArray = (TreeNode**)malloc(NodeNum * sizeof(TreeNode*));
+    
+    if (TreeSystem.NodeArray == NULL)
+        return;
+    
     TreeSystem.NodeArray[0] = InitNode(0);
+    
+    if (TreeSystem.NodeArray[0] == NULL)
+    {
+        free(TreeSystem.NodeArray);
+        return;
+    }
+    
     TreeSystem.NodeCount = NodeNum;
     
     for (i = 1; i < NodeNum; i++)
@@ -109,8 +125,14 @@ void AddAdjacent(TreeNode *AdjNode, int NodeRecepient)
     
     if (ptr == NULL)
         return;
+    if (ptr->AdjacentNodes == NULL)
+        return;
     
     ptr->AdjacentNodes = (TreeNode**)realloc(ptr->AdjacentNodes, sizeof(TreeNode*) * (ptr->AdjCount + 1));
+    
+    if (ptr->AdjacentNodes == NULL)
+        return;
+    
     ptr->AdjacentNodes[ptr->AdjCount] = AdjNode;
     ptr->AdjCount++;
 }
@@ -138,8 +160,17 @@ void TreeInput(void)
             AdjCount++;
             input = strtok(NULL, " ");
         }
+        
+        if (TreeSystem.NodeArray[i] == NULL)
+            return;
+        if (TreeSystem.NodeArray[i]->AdjacentNodes == NULL)
+            return;
+        
         TreeSystem.NodeArray[i]->AdjCount += AdjCount;
         TreeSystem.NodeArray[i]->AdjacentNodes = (TreeNode**)realloc(TreeSystem.NodeArray[i]->AdjacentNodes, sizeof(TreeNode*) * TreeSystem.NodeArray[i]->AdjCount);
+        
+        if (TreeSystem.NodeArray[i]->AdjacentNodes == NULL)
+            return;
         
         strcpy(str2, str);
         strtok(resetptr, " ");
@@ -186,8 +217,17 @@ void TreeInputForTest(char *fileaddress)
             AdjCount++;
             input = strtok(NULL, " ");
         }
+        
+        if (TreeSystem.NodeArray[i] == NULL)
+            return;
+        if (TreeSystem.NodeArray[i]->AdjacentNodes == NULL)
+            return;
+        
         TreeSystem.NodeArray[i]->AdjCount += AdjCount;
         TreeSystem.NodeArray[i]->AdjacentNodes = (TreeNode**)realloc(TreeSystem.NodeArray[i]->AdjacentNodes, sizeof(TreeNode*) * TreeSystem.NodeArray[i]->AdjCount);
+        
+        if (TreeSystem.NodeArray[i]->AdjacentNodes == NULL)
+            return;
         
         strcpy(str2, str);
         strtok(resetptr, " ");
@@ -301,7 +341,18 @@ void TreeTestInit(char *addr)
     }
     
     TreeSystem.NodeArray = (TreeNode**)malloc(NodeNum * sizeof(TreeNode*));
+    
+    if (TreeSystem.NodeArray == NULL)
+        return;
+    
     TreeSystem.NodeArray[0] = InitNode(0);
+    
+    if (TreeSystem.NodeArray[0] == NULL)
+    {
+        free(TreeSystem.NodeArray);
+        return;
+    }
+    
     TreeSystem.NodeCount = NodeNum;
     
     for (i = 1; i < NodeNum; i++)
